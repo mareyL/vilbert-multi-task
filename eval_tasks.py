@@ -301,7 +301,6 @@ def main():
             )
 
             tbLogger.step_val(0, float(loss), float(score), task_id, batch_size, "val")
-
             sys.stdout.write("%d/%d\r" % (i, len(task_dataloader_val[task_id])))
             sys.stdout.flush()
         # save the result or evaluate the result.
@@ -314,7 +313,37 @@ def main():
 
         json.dump(results, open(json_path + "_result.json", "w"))
         json.dump(others, open(json_path + "_others.json", "w"))
+        
+def evaluate(
+    args,
+    task_dataloader_val,
+    task_stop_controller,
+    task_cfg,
+    device,
+    task_id,
+    model,
+    task_losses,
+    epochId,
+    default_gpu,
+    tbLogger,
+):
 
+    model.eval()
+    for i, batch in enumerate(task_dataloader_val[task_id]):
+        loss, score, batch_size = ForwardModelsVal(
+            args, task_cfg, device, task_id, batch, model, task_losses
+        )
+        tbLogger.step_val(
+            epochId, float(loss), float(score), task_id, batch_size, "val"
+        )
+        if default_gpu:
+            sys.stdout.write("%d/%d\r" % (i, len(task_dataloader_val[task_id])))
+            sys.stdout.flush()
+
+    # update the multi-task scheduler.
+    task_stop_controller[task_id].step(tbLogger.getValScore(task_id))
+    score = tbLogger.showLossVal(task_id, task_stop_controller)
+    
 
 if __name__ == "__main__":
 
