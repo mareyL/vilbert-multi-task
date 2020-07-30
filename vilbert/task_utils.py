@@ -776,8 +776,14 @@ def EvaluatingModel(
 
     if task_cfg[task_id]["type"] == "VL-classifier":
         logits = torch.max(vil_prediction, 1)[1].data  # argmax
-        loss = 0
-        batch_score = 0
+        
+        #loss = 0
+        #batch_score = 0
+        
+        loss = task_losses[task_id](vil_prediction, target)
+        loss = loss.mean() * target.size(1)
+        batch_score = compute_score_with_logits(vil_prediction, target).sum()
+        
         for i in range(logits.size(0)):
             results.append(
                 {
