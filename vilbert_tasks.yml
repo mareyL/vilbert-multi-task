@@ -5,7 +5,7 @@ TASK1:
   process: normal
   task_id: 1
   dataroot: datasets/VQA/
-  features_h5path1: datasets/coco/features_100/COCO_test_resnext152_faster_rcnn_genome.lmdb
+  features_h5path1: datasets/coco/features_100/COCO_trainval_resnext152_faster_rcnn_genome.lmdb
   features_h5path2: ''
   train_annotations_jsonpath: ''
   val_annotations_jsonpath: ''
@@ -334,11 +334,11 @@ TASK18:
 TASK19:
   name: ME
   type: VL-classifier
-  loss: BCEWithLogitLoss
+  loss: MSELoss
   process: normal
   task_id: 19
   dataroot: datasets/ME/
-  features_h5path1: datasets/ME/features_100/COCO_test_resnext152_faster_rcnn_genome.lmdb
+  features_h5path1: datasets/ME/features_100/ME_test_resnext152_faster_rcnn_genome.lmdb/data.mdb
   features_h5path2: ''
   train_annotations_jsonpath: ''
   val_annotations_jsonpath: ''
