@@ -222,9 +222,11 @@ class FeatureExtractor:
             # files = [files[i: i+1000] for i in range(0, len(files), 1000)][self.args.partition]
             for chunk in self._chunks(files, self.args.batch_size):
                 try:
-                    features, infos = self.get_detectron_features(chunk)
-                    for idx, file_name in enumerate(chunk):
-                        self._save_feature(file_name, features[idx], infos[idx])
+                    if all(os.path.exists(os.path.join(self.args.output_folder, os.path.basename(file_name).split(".")[0]) + ".npy") == False for file_name in chunk):
+                        features, infos = self.get_detectron_features(chunk)
+                        for idx, file_name in enumerate(chunk):
+                            fb = os.path.join(self.args.output_folder, os.path.basename(file_name).split(".")[0])
+                            self._save_feature(file_name, features[idx], infos[idx])
                 except BaseException:
                     continue
 
