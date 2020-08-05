@@ -25,6 +25,7 @@ logger = logging.getLogger(__name__)
 LossMap = {
     "BCEWithLogitLoss": nn.BCEWithLogitsLoss(reduction="mean"),
     "CrossEntropyLoss": nn.CrossEntropyLoss(),
+    "MSELoss": nn.MSELoss(),
 }
 
 
