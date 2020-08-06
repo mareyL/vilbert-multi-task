@@ -1680,7 +1680,11 @@ class VILBertForVLTasks(BertPreTrainedModel):
             pooled_output = self.dropout(pooled_output_t * pooled_output_v)
         else:
             assert False
-
+        
+        self.pooled_output = pooled_output
+        self.pooled_output_t = pooled_output_t
+        self.pooled_output_v = pooled_output_v
+        
         vil_prediction = self.vil_prediction(pooled_output)
         vil_prediction_gqa = self.vil_prediction_gqa(pooled_output)
         if pooled_output.size(0) % 2 == 0:
