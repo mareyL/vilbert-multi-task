@@ -798,6 +798,11 @@ def EvaluatingModel(
                     ],
                 }
             )
+            
+    elif task_cfg[task_id]["type"] == "VL-regressor":
+        loss = 0
+        batch_score = 0
+        pass      
 
     elif task_cfg[task_id]["type"] == "VL-classifier-GQA":
         logits = torch.max(vil_prediction_gqa, 1)[1].data
@@ -867,4 +872,6 @@ def EvaluatingModel(
         loss = loss.mean()
         batch_score = compute_score_with_logits(vil_tri_prediction, target).sum()
 
+    if task_id == "TASK19":
+        return float(loss), float(batch_score), batch_size, results, others, target
     return float(loss), float(batch_score), batch_size, results, others
