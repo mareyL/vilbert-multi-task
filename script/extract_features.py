@@ -8,6 +8,7 @@
 import argparse
 import glob
 import os
+from tqdm import tqdm
 
 import cv2
 import numpy as np
@@ -69,6 +70,12 @@ class FeatureExtractor:
         )
         parser.add_argument(
             "--partition", type=int, default=0, help="Partition to download."
+        )
+        parser.add_argument(
+            "--samples",
+            type=int,
+            default=-1,
+            help="Used to extract features from sampled images of a video",
         )
         return parser
 
@@ -199,7 +206,7 @@ class FeatureExtractor:
         return feat_list
 
     def _chunks(self, array, chunk_size):
-        for i in range(0, len(array), chunk_size):
+        for i in tqdm(range(0, len(array), chunk_size)):
             yield array[i : i + chunk_size]
 
     def _save_feature(self, file_name, feature, info):
@@ -217,7 +224,12 @@ class FeatureExtractor:
             features, infos = self.get_detectron_features([image_dir])
             self._save_feature(image_dir, features[0], infos[0])
         else:
-            files = glob.glob(os.path.join(image_dir, "*"))
+            if self.args.samples <= 0:
+                files = glob.glob(os.path.join(image_dir, "*"))
+            else:
+                files = []
+                for i in range(self.args.samples):
+                    files += glob.glob(os.path.join(image_dir, "*_" + str(i) + ".*"))
             # files = sorted(files)
             # files = [files[i: i+1000] for i in range(0, len(files), 1000)][self.args.partition]
             for chunk in self._chunks(files, self.args.batch_size):
