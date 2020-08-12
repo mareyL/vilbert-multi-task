@@ -1681,7 +1681,11 @@ class VILBertForVLTasks(BertPreTrainedModel):
         else:
             assert False
         
-        self.pooled_output = pooled_output
+        pooled_output_sum = self.dropout(pooled_output_t + pooled_output_v)
+        pooled_output_mul = self.dropout(pooled_output_t * pooled_output_v)
+        
+        self.pooled_output_mul = pooled_output_mul
+        self.pooled_output_sum = pooled_output_sum
         self.pooled_output_t = pooled_output_t
         self.pooled_output_v = pooled_output_v
         
