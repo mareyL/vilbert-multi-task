@@ -1622,6 +1622,13 @@ class VILBertForVLTasks(BertPreTrainedModel):
         )  # for Visual Entailiment tasks
         self.vision_logit = nn.Linear(config.v_hidden_size, 1)
         self.linguisic_logit = nn.Linear(config.hidden_size, 1)
+        self.vil_score_prediction = SigLinNet(
+            config.bi_hidden_size, # default is 1024
+            config.reg_hidden_size_1, 
+            config.reg_hidden_size_2, 
+            config.reg_hidden_size_3, 
+            2 # scores to predict (stm and ltm)
+        )
         self.fusion_method = config.fusion_method
         self.apply(self.init_weights)
 
@@ -1669,6 +1676,7 @@ class VILBertForVLTasks(BertPreTrainedModel):
         vision_logit = 0
         linguisic_prediction = 0
         linguisic_logit = 0
+        vil_score_prediction = 0
 
         linguisic_prediction, vision_prediction, vil_binary_prediction = self.cls(
             sequence_output_t, sequence_output_v, pooled_output_t, pooled_output_v
@@ -1701,6 +1709,7 @@ class VILBertForVLTasks(BertPreTrainedModel):
             (1.0 - image_attention_mask) * -10000.0
         ).unsqueeze(2).to(dtype=next(self.parameters()).dtype)
         linguisic_logit = self.linguisic_logit(self.dropout(sequence_output_t))
+        vil_score_prediction = self.vil_score_prediction(pooled_output)
 
         return (
             vil_prediction,
@@ -1712,10 +1721,32 @@ class VILBertForVLTasks(BertPreTrainedModel):
             vision_logit,
             linguisic_prediction,
             linguisic_logit,
+            vil_score_prediction,
             all_attention_mask,
         )
 
 
+class SigLinNet(nn.Module):
+    def __init__(self, input_size, 
+                 hidden_size_1,
+                 hidden_size_2, 
+                 hidden_size_3, 
+                 num_scores):
+        super(SigLinNet, self).__init__()
+        self.out = nn.Sequential(
+            nn.Linear(input_size, hidden_size_1),
+            nn.Sigmoid(),
+            nn.Linear(hidden_size_1, hidden_size_2),
+            nn.Sigmoid(),
+            nn.Linear(hidden_size_2, hidden_size_3),
+            nn.Sigmoid(),
+            nn.Linear(hidden_size_3, num_scores),
+        )
+
+    def forward(self, x):
+        return self.out(x)
+
+    
 class SimpleClassifier(nn.Module):
     def __init__(self, in_dim, hid_dim, out_dim, dropout):
         super().__init__()
