@@ -19,6 +19,7 @@ from pytorch_transformers.tokenization_bert import BertTokenizer
 from vilbert.datasets import DatasetMapTrain, DatasetMapEval
 from vilbert.datasets._image_features_reader import ImageFeaturesH5Reader
 import pdb
+from sklearn.metrics import r2_score
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +35,10 @@ def ForwardModelsVal(args, task_cfg, device, task_id, batch, model, task_losses)
 
     if task_id == "TASK4" or task_id == "TASK17":
         features, spatials, image_mask, question, target, input_mask, segment_ids, multiple_choice_ids, co_attention_mask, question_id = (
+            batch
+        )
+    elif task_id == "TASK19":
+        features, spatials, image_mask, question, target, input_mask, segment_ids, co_attention_mask = (
             batch
         )
     else:
@@ -108,7 +113,7 @@ def ForwardModelsVal(args, task_cfg, device, task_id, batch, model, task_losses)
 
     task_tokens = question.new().resize_(question.size(0), 1).fill_(int(task_id[4:]))
 
-    vil_prediction, vil_prediction_gqa, vil_logit, vil_binary_prediction, vil_tri_prediction, vision_prediction, vision_logit, linguisic_prediction, linguisic_logit, _ = model(
+    vil_prediction, vil_prediction_gqa, vil_logit, vil_binary_prediction, vil_tri_prediction, vision_prediction, vision_logit, linguisic_prediction, linguisic_logit, vil_score_prediction, _ = model(
         question,
         features,
         spatials,
@@ -161,6 +166,12 @@ def ForwardModelsVal(args, task_cfg, device, task_id, batch, model, task_losses)
         loss = task_losses[task_id](vil_tri_prediction, target)
         loss = loss.mean()
         batch_score = compute_score_with_logits(vil_tri_prediction, target).sum()
+        
+    elif task_cfg[task_id]["type"] == "VL-regressor":
+        loss = task_losses[task_id](vil_score_prediction, target)
+        loss = loss.mean() * target.size(1)
+        batch_score = r2_score(vil_score_prediction.detach().numpy(), target.detach().numpy())
+
 
     return float(loss), float(batch_score), batch_size
 
@@ -189,6 +200,10 @@ def ForwardModelsTrain(
 
     if task_id == "TASK4" or task_id == "TASK17":
         features, spatials, image_mask, question, target, input_mask, segment_ids, multiple_choice_ids, co_attention_mask, question_id = (
+            batch
+        )
+    elif task_id == "TASK19":
+        features, spatials, image_mask, question, target, input_mask, segment_ids, co_attention_mask = (
             batch
         )
     else:
@@ -311,7 +326,7 @@ def ForwardModelsTrain(
         )
 
     task_tokens = question.new().resize_(question.size(0), 1).fill_(int(task_id[4:]))
-    vil_prediction, vil_prediction_gqa, vil_logit, vil_binary_prediction, vil_tri_prediction, vision_prediction, vision_logit, linguisic_prediction, linguisic_logit, _ = model(
+    vil_prediction, vil_prediction_gqa, vil_logit, vil_binary_prediction, vil_tri_prediction, vision_prediction, vision_logit, linguisic_prediction, linguisic_logit, vil_score_prediction, _ = model(
         question,
         features,
         spatials,
@@ -373,6 +388,11 @@ def ForwardModelsTrain(
         batch_score = compute_score_with_logits(
             vil_tri_prediction, target
         ).sum() / float(batch_size)
+    
+    elif task_cfg[task_id]["type"] == "VL-regressor":
+        loss = task_losses[task_id](vil_score_prediction, target)
+        loss = loss.mean() * target.size(1)
+        batch_score = r2_score(vil_score_prediction.detach().numpy(), target.detach().numpy())
 
     return loss, batch_score
 
@@ -768,7 +788,7 @@ def EvaluatingModel(
     task_tokens = question.new().resize_(question.size(0), 1).fill_(int(task_id[4:]))
 
     with torch.no_grad():
-        vil_prediction, vil_prediction_gqa, vil_logit, vil_binary_prediction, vil_tri_prediction, vision_prediction, vision_logit, linguisic_prediction, linguisic_logit, _ = model(
+        vil_prediction, vil_prediction_gqa, vil_logit, vil_binary_prediction, vil_tri_prediction, vision_prediction, vision_logit, linguisic_prediction, linguisic_logit, vil_score_prediction, _ = model(
             question,
             features,
             spatials,
@@ -800,9 +820,9 @@ def EvaluatingModel(
             )
             
     elif task_cfg[task_id]["type"] == "VL-regressor":
-        loss = 0
-        batch_score = 0
-        pass      
+        loss = task_losses[task_id](vil_score_prediction, target)
+        loss = loss.mean() * target.size(1)
+        batch_score = r2_score(vil_score_prediction.detach().numpy(), target.detach().numpy())    
 
     elif task_cfg[task_id]["type"] == "VL-classifier-GQA":
         logits = torch.max(vil_prediction_gqa, 1)[1].data
@@ -872,6 +892,4 @@ def EvaluatingModel(
         loss = loss.mean()
         batch_score = compute_score_with_logits(vil_tri_prediction, target).sum()
 
-    if task_id == "TASK19":
-        return float(loss), float(batch_score), batch_size, results, others, target
     return float(loss), float(batch_score), batch_size, results, others
