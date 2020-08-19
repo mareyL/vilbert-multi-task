@@ -26,5 +26,8 @@
   "v_initializer_range":0.02,
   "v_biattention_id":[0, 1, 2, 3, 4, 5],
   "t_biattention_id":[6, 7, 8, 9, 10, 11],
-  "pooling_method": "mul"
+  "pooling_method": "mul", 
+  "reg_hidden_size_1": 512,
+  "reg_hidden_size_2": 64,
+  "reg_hidden_size_3": 32
 }
