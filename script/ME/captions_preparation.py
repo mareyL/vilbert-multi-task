@@ -71,22 +71,15 @@ def main():
     parser.add_argument(
         "--captions_path",
         type=str, 
-        default="/MediaEval/alto_titles_danny.csv", 
-        help="Captions .csv file"
+        default="/aloui/MediaEval/dev-set/dev-set_video-captions.txt", 
+        help="Captions .txt file"
     )
     
     parser.add_argument(
-        "--train_gt",
+        "--gt_path",
         type=str, 
         default="/MediaEval/dev-set/ground-truth/ground-truth_dev-set.csv", 
-        help="Ground truth .csv file for the training set"
-    )
-    
-    parser.add_argument(
-        "--test_gt",
-        type=str, 
-        default="/MediaEval/test-set/ground-truth/ground-truth_test-set.csv", 
-        help="Ground truth .csv file for the training set"
+        help="Ground truth .csv file"
     )
     
     parser.add_argument(
@@ -98,71 +91,77 @@ def main():
     
     parser.add_argument(
         "--split",
-        default="trainval", 
-        type=str, 
-        help="which split to use (trainval or test or trainval-test). Default is trainval"
+        required=True,
+        type=str,
+        help="which split to use trainval or test"
+    )
+    
+    parser.add_argument(
+        "--dc",
+        action="store_true",
+        help="Whether to use deep captions or not"
     )
     
     args = parser.parse_args()
-
-    #deep_coptions_path = "/MediaEval/alto_titles_danny.csv"
     
+    try:
+        assert args.split in ["trainval", "test"]
+    except Exception as error:
+        print("Split must be trainval or test")
+        raise
+    
+    #deep_coptions_path = "/MediaEval/alto_titles_danny.csv"
+    #train_caption_path = '/aloui/MediaEval/dev-set/dev-set_video-captions.txt'
     dataroot = 'datasets/ME'
     max_length = 23
-    deep_coptions_df = pd.read_csv(args.captions_path)
     tokenizer = BertTokenizer.from_pretrained(args.bert_model, do_lower_case=args.do_lower_case)
     
-    dc_entries = []
-    for r in deep_coptions_df.itertuples():
-        sample = {}
-        vid_id = int(r.video)
-        caption = r.caption.rstrip().replace('-', ' ')
-        sample['video_id'] = vid_id
-        sample['caption'] = caption
-        dc_entries.append(sample)
+    entries = []
 
-        
+    if args.dc:
+        deep_coptions_df = pd.read_csv(args.captions_path)
+        entries = []
+        for r in deep_coptions_df.itertuples():
+            sample = {}
+            vid_id = int(r.video)
+            caption = r.caption.rstrip().replace('-', ' ')
+            sample['video_id'] = vid_id
+            sample['caption'] = caption
+            entries.append(sample)
+    else:
+        with open(args.captions_path, 'r') as f:
+            lines = f.readlines()
+            for line in lines:
+                sample = {}
+                vid_name, caption = line.split('\t')
+                vid_id = re.findall(r'\d+', vid_name)[0]
+                caption = caption.rstrip().replace('-', ' ')
+                sample['video_id'] = int(vid_id)
+                sample['caption'] = caption
+                entries.append(sample)
+
+    train_df = pd.read_csv(args.gt_path)
+    score_dict = {}
+    for r in train_df.itertuples():
+        vid_id = re.findall(r'\d+', r.video)[0]
+        vid_id = int(vid_id)
+        score_dict[vid_id] = [r._2, r._4]
+
+    train_score_list = []
+    for sample in entries:
+        if sample['video_id'] in score_dict:
+            sample['scores'] = score_dict[sample['video_id']]
+            train_score_list.append(sample)
+
+    tokenize(train_score_list, tokenizer, max_length=max_length)
+    tensorize(train_score_list, split=args.split)
     
-    if "train" in args.split:
-        train_df = pd.read_csv(args.train_gt)
-        score_dict = {}
-        for r in train_df.itertuples():
-            vid_id = re.findall(r'\d+', r.video)[0]
-            vid_id = int(vid_id)
-            score_dict[vid_id] = [r._2, r._4]
-        
-        train_score_list = []
-        for sample in dc_entries:
-            if sample['video_id'] in score_dict:
-                sample['scores'] = score_dict[sample['video_id']]
-                train_score_list.append(sample)
-        
-        tokenize(train_score_list, tokenizer, max_length=max_length)
-        tensorize(train_score_list, split="trainval")
-        train_cache_path = os.path.join(dataroot, 'cache', 'ME' + '_' + "trainval" + '_' + str(max_length) + '_cleaned' + '.pkl')
-        print("Saving cache file with {} samples under {}".format(len(train_score_list), train_cache_path))
-        cPickle.dump(train_score_list, open(train_cache_path, 'wb'))
+    print(len(train_score_list))
+    print(train_score_list[0])
     
-    
-    if "test" in args.split:
-        test_df = pd.read_csv(args.test_gt)
-        test_score_dict = {}
-        for r in test_df.itertuples():
-            vid_id = re.findall(r'\d+', r.video)[0]
-            vid_id = int(vid_id)
-            test_score_dict[vid_id] = [r._2, r._4]
-        
-        test_score_list = []
-        for sample in dc_entries:
-            if sample['video_id'] in test_score_dict:
-                sample['scores'] = test_score_dict[sample['video_id']]
-                test_score_list.append(sample)
-                
-        tokenize(test_score_list, tokenizer, max_length=max_length)
-        tensorize(test_score_list, split="test")
-        test_cache_path = os.path.join(dataroot, 'cache', 'ME' + '_' + "test" + '_' + str(max_length) + '_cleaned' + '.pkl')
-        print("Saving cache file with {} samples under {}".format(len(test_score_list), test_cache_path))
-        cPickle.dump(test_score_list, open(test_cache_path, 'wb'))
+    train_cache_path = os.path.join(dataroot, 'cache', 'ME' + '_' + args.split + '_' + str(max_length) + '_cleaned' + '.pkl')
+    print("Saving cache file with {} samples under {}".format(len(train_score_list), train_cache_path))
+    cPickle.dump(train_score_list, open(train_cache_path, 'wb'))
 
 
 if __name__ == "__main__":

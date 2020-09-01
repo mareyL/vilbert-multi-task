@@ -78,10 +78,10 @@ python train_tasks.py --bert_model bert-base-uncased --from_pretrained <multi_ta
  
 ## MediaEval Task
 
-### Prepare Deep Caption
-Preparing the Deep Captions consists of loading video IDs and captions from the `.csv` file, add the ground truth (scores), tokenize, tensorize and save the cache file. An example of using this script
+### Prepare (Deep) Caption
+Preparing (deep) captions consists of loading video IDs and captions from the `.txt` or `.csv` file, add the ground truth (scores), tokenize, tensorize and save the cache file. Add `--dc` parameters if using deep captions. An example of using this script
 ```
-python script/ME/dc_preparation.py --captions_path /MediaEval/alto_titles_danny.csv --train_gt /MediaEval/dev-set/ground-truth/ground-truth_dev-set.csv --split trainval
+python script/ME/captions_preparation.py --captions_path /MediaEval/alto_titles_danny.csv --gt_path /MediaEval/dev-set/ground-truth/ground-truth_dev-set.csv --split trainval --dc
 ```
 
 ### Extract Frames from Video
@@ -89,10 +89,16 @@ Use this script to extract frames from the video.
 ```
 python script/ME/extract_frames.py --output_folder <output_folder> --video_dir <video_dir> --frames <frames>
 ```
-Use the `frames` parameter for the number of frames to be extracted 9default is 5). The extracted frames are saved uner `<output_folder>/<video-id>_<frame_count>.jpg` where `<frame_count>` in `[0..<frames>-1]`. Keep this structure since it is used by the `average_features.py` script.
+Use the `frames` parameter for the number of frames to be extracted (default is 1 i.e., the middle frame of the video). The extracted frames are saved as `<output_folder>/<video-id>_<frame_count>.jpg` where `<frame_count>` in `[0..<frames>-1]` (and `<output_folder>/<video-id>.jpg` when extracting only one frame). Keep this structure since it is used by the `script/ME/average_features.py` or `script/extract_features.py` scripts.
 Make sure to have writing permission for the `output_folder`. Otherwise, here is an example to use
 ```
-sudo /home/<user>/miniconda3/envs/vilbert-mt/bin/python script/ME/extract_frames.py --output_folder /MediaEval/dev-set/source_output --video_dir /MediaEval/dev-set/sources --frames 5
+sudo /home/<user>/miniconda3/envs/vilbert-mt/bin/python script/ME/extract_frames.py --output_folder /MediaEval/dev-set/source_output --video_dir /MediaEval/dev-set/sources --frames 1
+```
+
+### Extract Features for Multiple Frames
+Use `script/extract_features.py` and add `samples` parameter for the number of frames to use.
+```
+python script/extract_features.py --model_file data/detectron_model.pth --config_file data/detectron_config.yaml --image_dir datasets/ME/images/train --output_folder datasets/ME/features_100/ME_trainval_resnext152_faster_rcnn_genome.lmdb/ --samples 5
 ```
 
 ### Average Visual Feature Vectors
