@@ -76,6 +76,42 @@ python train_tasks.py --bert_model bert-base-uncased --from_pretrained <pretrain
 python train_tasks.py --bert_model bert-base-uncased --from_pretrained <multi_task_model_path> --config_file config/bert_base_6layer_6conect.json --tasks 1 --lr_scheduler 'warmup_linear' --train_iter_gap 4 --task_specific_tokens --save_name finetune_from_multi_task_model
 ```
  
+## MediaEval Task
+
+### Average Visual Feature Vectors
+If using multiple extracted frames from each video, this script is used to average already extracted features. Features files should be named `<video-id>_<feature_count>.npy` where `<feature_count>` in `[0..<feature_number>]`.
+```
+python script/ME/average_features.py --features_dir <path_to_directory_with_features> --output_folder <path_to_output_averaged_features>
+```
+
+### End-to-end Training
+Training the Multi-task model for ME
+```
+python train_tasks.py --bert_model bert-base-uncased --from_pretrained models/multi_task_model.bin --config_file config/bert_base_6layer_6conect.json --tasks 19 --train_iter_gap 4 --task_specific_tokens --save_name finetune_from_multi_task_model-task_19-all_train-BASE --lr_scheduler 'warmup_linear'
+```
+Training the VQA fine-tuned model for ME
+```
+python train_tasks.py --bert_model bert-base-uncased --from_pretrained save/VQA_bert_base_6layer_6conect-finetune_from_multi_task_model-task_1/pytorch_model_19.bin --config_file config/bert_base_6layer_6conect.json --tasks 19 --train_iter_gap 4 --task_specific_tokens --save_name finetune_from_multi_task_model-task_19-all_train-VQA --lr_scheduler 'warmup_linear'
+```
+Training the NLVR2 fine-tuned model for ME
+```
+python train_tasks.py --bert_model bert-base-uncased --from_pretrained save/NLVR2_bert_base_6layer_6conect-finetune_from_multi_task_model-task_12/pytorch_model_19.bin --config_file config/bert_base_6layer_6conect.json --tasks 19 --train_iter_gap 4 --task_specific_tokens --save_name finetune_from_multi_task_model-task_19-all_train-NLVR2 --lr_scheduler 'warmup_linear'
+```
+
+### End-to-end Evaluating
+Evaluate the Multi-task model previously trained for ME
+```
+python script/ME/eval_ME.py --bert_model bert-base-uncased --config_file config/bert_base_6layer_6conect.json --tasks 19 --split test --task_specific_tokens --batch_size 128 --from_pretrained save/ME_bert_base_6layer_6conect-finetune_from_multi_task_model-task_19-all_train-BASE/pytorch_model_12.bin
+```
+Evaluate the VQA fine-tuned model previously trained for ME
+```
+python script/ME/eval_ME.py --bert_model bert-base-uncased --config_file config/bert_base_6layer_6conect.json --tasks 19 --split test --task_specific_tokens --batch_size 128 --from_pretrained save/ME_bert_base_6layer_6conect-finetune_from_multi_task_model-task_19-all_train-VQA/pytorch_model_14.bin
+```
+Evaluate the NLVR2 fine-tuned model previously trained for ME
+```
+python script/ME/eval_ME.py --bert_model bert-base-uncased --config_file config/bert_base_6layer_6conect.json --tasks 19 --split test --task_specific_tokens --batch_size 128 --from_pretrained save/ME_bert_base_6layer_6conect-finetune_from_multi_task_model-task_19-all_train-NLVR2/pytorch_model_11.bin
+```
+
 ## License
 
 vilbert-multi-task is licensed under MIT license available in [LICENSE](LICENSE) file.
