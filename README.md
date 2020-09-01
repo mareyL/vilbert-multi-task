@@ -78,6 +78,12 @@ python train_tasks.py --bert_model bert-base-uncased --from_pretrained <multi_ta
  
 ## MediaEval Task
 
+### Prepare Deep Caption
+Preparing the Deep Captions consists of loading video IDs and captions from the `.csv` file, add the ground truth (scores), tokenize, tensorize and save the cache file. An example of using this script
+```
+python script/ME/dc_preparation.py --captions_path /MediaEval/alto_titles_danny.csv --train_gt /MediaEval/dev-set/ground-truth/ground-truth_dev-set.csv --split trainval
+```
+
 ### Average Visual Feature Vectors
 If using multiple extracted frames from each video, this script is used to average already extracted features. Features files should be named `<video-id>_<feature_count>.npy` where `<feature_count>` in `[0..<feature_number>]`.
 ```
