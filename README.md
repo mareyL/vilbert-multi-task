@@ -84,6 +84,17 @@ Preparing the Deep Captions consists of loading video IDs and captions from the 
 python script/ME/dc_preparation.py --captions_path /MediaEval/alto_titles_danny.csv --train_gt /MediaEval/dev-set/ground-truth/ground-truth_dev-set.csv --split trainval
 ```
 
+### Extract Frames from Video
+Use this script to extract frames from the video.
+```
+python script/ME/extract_frames.py --output_folder <output_folder> --video_dir <video_dir> --frames <frames>
+```
+Use the `frames` parameter for the number of frames to be extracted 9default is 5). The extracted frames are saved uner `<output_folder>/<video-id>_<frame_count>.jpg` where `<frame_count>` in `[0..<frames>-1]`. Keep this structure since it is used by the `average_features.py` script.
+Make sure to have writing permission for the `output_folder`. Otherwise, here is an example to use
+```
+sudo /home/<user>/miniconda3/envs/vilbert-mt/bin/python script/ME/extract_frames.py --output_folder /MediaEval/dev-set/source_output --video_dir /MediaEval/dev-set/sources --frames 5
+```
+
 ### Average Visual Feature Vectors
 If using multiple extracted frames from each video, this script is used to average already extracted features. Features files should be named `<video-id>_<feature_count>.npy` where `<feature_count>` in `[0..<feature_number>]`.
 ```
