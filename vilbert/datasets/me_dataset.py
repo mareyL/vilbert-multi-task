@@ -175,11 +175,7 @@ class MERegressionDataset(Dataset):
     ):
         super().__init__()
         self.split = split
-        # ans2label_path = os.path.join(dataroot, "cache", "trainval_ans2label.pkl")
-        # label2ans_path = os.path.join(dataroot, "cache", "trainval_label2ans.pkl")
-        # self.ans2label = cPickle.load(open(ans2label_path, "rb"))
-        # self.label2ans = cPickle.load(open(label2ans_path, "rb"))
-        self.num_labels = 3129 # hardcoded to test on TASK19
+        self.num_labels = 2 # hardcoded to test on TASK19
         self._max_region_num = max_region_num
         self._max_seq_length = max_seq_length
         self._image_features_reader = image_features_reader
@@ -193,7 +189,7 @@ class MERegressionDataset(Dataset):
             "cache",
             task + "_" + split + "_" + str(max_seq_length) + clean_train + ".pkl",
         )
-        
+
         if not os.path.exists(cache_path):
             self.entries = _load_dataset(dataroot, split, clean_datasets)
             self.tokenize(max_seq_length)
@@ -291,15 +287,18 @@ class MERegressionDataset(Dataset):
         segment_ids = entry["c_segment_ids"]
 
         co_attention_mask = torch.zeros((self._max_region_num, self._max_seq_length))
+        
         target = torch.zeros(self.num_labels)
-
-        if "test" not in self.split:
+        if "scores" in entry:
+            target = entry["scores"]
+        
+        '''if "test" not in self.split:
             # answer = entry["answer"]
             # labels = answer["labels"]
             target = entry["scores"]
             # if labels is not None:
-            #     target.scatter_(0, labels, scores)
-
+            #     target.scatter_(0, labels, scores)'''
+        
         return (
             features,
             spatials,
