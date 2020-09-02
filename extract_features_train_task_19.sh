@@ -1,1 +1,0 @@
-python script/extract_features.py --model_file data/detectron_model.pth --config_file data/detectron_config.yaml --image_dir datasets/ME/images/dc/train --output_folder datasets/ME/features_100/dc/ME_trainval_resnext152_faster_rcnn_genome.lmdb/ --batch_size 2 --samples 5
