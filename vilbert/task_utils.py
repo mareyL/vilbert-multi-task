@@ -20,6 +20,7 @@ from vilbert.datasets import DatasetMapTrain, DatasetMapEval
 from vilbert.datasets._image_features_reader import ImageFeaturesH5Reader
 import pdb
 from sklearn.metrics import r2_score
+from scipy.stats import spearmanr
 
 logger = logging.getLogger(__name__)
 
@@ -170,7 +171,12 @@ def ForwardModelsVal(args, task_cfg, device, task_id, batch, model, task_losses)
     elif task_cfg[task_id]["type"] == "VL-regressor":
         loss = task_losses[task_id](vil_score_prediction, target)
         loss = loss.mean() * target.size(1)
-        batch_score = r2_score(vil_score_prediction.detach().numpy(), target.detach().numpy())
+        batch_score = r2_score(vil_score_prediction.cpu().detach().numpy(), target.cpu().detach().numpy())
+        batch_score = spearmanr(
+            vil_score_prediction.cpu().detach().numpy()[:,0], 
+            target.cpu().detach().numpy()[:,0], 
+            axis=0
+        )[0]
 
 
     return float(loss), float(batch_score), batch_size
@@ -392,7 +398,12 @@ def ForwardModelsTrain(
     elif task_cfg[task_id]["type"] == "VL-regressor":
         loss = task_losses[task_id](vil_score_prediction, target)
         loss = loss.mean() * target.size(1)
-        batch_score = r2_score(vil_score_prediction.detach().numpy(), target.detach().numpy())
+        batch_score = r2_score(vil_score_prediction.cpu().detach().numpy(), target.cpu().detach().numpy())
+        batch_score = spearmanr(
+            vil_score_prediction.cpu().detach().numpy()[:,0], 
+            target.cpu().detach().numpy()[:,0], 
+            axis=0
+        )[0]
 
     return loss, batch_score
 
@@ -822,7 +833,12 @@ def EvaluatingModel(
     elif task_cfg[task_id]["type"] == "VL-regressor":
         loss = task_losses[task_id](vil_score_prediction, target)
         loss = loss.mean() * target.size(1)
-        batch_score = r2_score(vil_score_prediction.detach().numpy(), target.detach().numpy())    
+        batch_score = r2_score(vil_score_prediction.cpu().detach().numpy(), target.cpu().detach().numpy())
+        batch_score = spearmanr(
+            vil_score_prediction.cpu().detach().numpy()[:,0], 
+            target.cpu().detach().numpy()[:,0], 
+            axis=0
+        )[0]
 
     elif task_cfg[task_id]["type"] == "VL-classifier-GQA":
         logits = torch.max(vil_prediction_gqa, 1)[1].data
@@ -891,5 +907,7 @@ def EvaluatingModel(
         loss = task_losses[task_id](vil_tri_prediction, target)
         loss = loss.mean()
         batch_score = compute_score_with_logits(vil_tri_prediction, target).sum()
-
+    
+    if task_id == "TASK19":
+        return float(loss), float(batch_score), batch_size, results, others, target, vil_score_prediction
     return float(loss), float(batch_score), batch_size, results, others
