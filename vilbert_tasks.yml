@@ -338,15 +338,15 @@ TASK19:
   process: normal
   task_id: 19
   dataroot: datasets/ME/
-  features_h5path1: datasets/ME/features_100/dc/ME_trainval_resnext152_faster_rcnn_genome.lmdb/data.mdb
+  features_h5path1: datasets/ME/features_100/train+test/data.mdb
   features_h5path2: ''
   train_annotations_jsonpath: ''
   val_annotations_jsonpath: ''
   max_seq_length: 23
   max_region_num: 101
-  batch_size: 64
+  batch_size: 32
   eval_batch_size: 1024
   train_split: trainval
-  val_split: minval
+  val_split: test
   lr: 0.00004
-  num_epoch: 20
+  num_epoch: 50
