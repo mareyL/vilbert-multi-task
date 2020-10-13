@@ -47,6 +47,13 @@ conda install pytorch torchvision cudatoolkit=10.0 -c pytorch
 ```text
 python setup.py develop
 ```
+5. Install gitmodules with 
+```text
+ git submodule init
+ git submodule update
+
+```
+
 
 ## Data Setup
 
