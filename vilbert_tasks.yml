@@ -337,8 +337,8 @@ TASK19:
   loss: MSELoss
   process: normal
   task_id: 19
-  dataroot: datasets/ME/
-  features_h5path1: datasets/ME/features_100/train+test/data.mdb
+  dataroot: datasets/ME2020/
+  features_h5path1: datasets/ME/feature_100/ME2020_trainval_resnext152_faster_rcnn_genome.lmdb
   features_h5path2: ''
   train_annotations_jsonpath: ''
   val_annotations_jsonpath: ''

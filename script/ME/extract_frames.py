@@ -42,7 +42,7 @@ def main():
     np.random.seed(42)
 
     for k, filename in enumerate(tqdm(os.listdir(args.video_dir))):
-        if filename.endswith(".webm"):
+        if filename.endswith(".webm") | filename.endswith(".mp4") :
             vid_id = re.findall(r'\d+', filename)[0]
             vid_id = int(vid_id)
             video_path = os.path.join(args.video_dir, filename)
