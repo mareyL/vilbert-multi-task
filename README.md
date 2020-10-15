@@ -51,7 +51,10 @@ python setup.py develop
 ```text
  git submodule init
  git submodule update
-
+cd vilbert-multi-task/tools/refer
+python setup.py install
+make
+#Then replace refer.py byt https://gist.github.com/vedanuj/9d3497d107cfca0b6f3dfdc28d5cb226 to update from Python2 version to Python3
 ```
 
 
