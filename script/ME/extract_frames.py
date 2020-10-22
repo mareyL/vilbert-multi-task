@@ -54,13 +54,24 @@ def main():
                 file_name = os.path.join(args.output_folder, str(vid_id) + '.jpg')
                 cv2.imwrite(file_name, frame)
             else:
-                frameIds = cap.get(cv2.CAP_PROP_FRAME_COUNT) * np.random.uniform(size=args.frames)
-                for i, fid in enumerate(frameIds):
-                    cap.set(cv2.CAP_PROP_POS_FRAMES, fid)
-                    ret, frame = cap.read()
-                    file_name = os.path.join(args.output_folder, str(vid_id) + '_' + str(i) + '.jpg')
-                    cv2.imwrite(file_name, frame)
+                working = False 
+                while not working:
+                   try:
+                      frameIds = (cap.get(cv2.CAP_PROP_FRAME_COUNT) - 1) * np.array([(1.0+i) / (args.frames + 1) for i in range(args.frames)])
+                      for i, fid in enumerate(frameIds):
+                         cap.set(cv2.CAP_PROP_POS_FRAMES, int(fid))
+                         ret, frame = cap.read()
+                         file_name = os.path.join(args.output_folder, str(vid_id) + '_' + str(i) + '.jpg')
+                         #print('shape:', frame.shape)
+                         #print('size:', frame.size)
+                         #print('--- arr ---\n', frame, '\n--- end ---')
+                         cv2.imwrite(file_name, frame)
+                      working = True
+                   except:
+                      print('Exception with', cap.get(cv2.CAP_PROP_FRAME_COUNT), cap.get(cv2.CAP_PROP_FPS), frameIds)
+                      raise Exception('Exception')
 
 if __name__ == "__main__":
 
     main()
+
