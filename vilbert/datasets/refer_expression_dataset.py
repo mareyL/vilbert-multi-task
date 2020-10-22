@@ -4,7 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 
 import os
-
+print(os.getcwd())
 import torch
 from torch.utils.data import Dataset
 import numpy as np
