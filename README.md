@@ -38,7 +38,7 @@ pip install -r requirements.txt
 
 2. Install pytorch
 ```
-conda install pytorch torchvision cudatoolkit=10.0 -c pytorch
+conda install pytorch torchvision cudatoolkit=10.0 -c pytorch #Install cudatoolkit that fits the computer version , same as nvcc --version
 ```
 
 3. Install apex, follows https://github.com/NVIDIA/apex
