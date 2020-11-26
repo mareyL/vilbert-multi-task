@@ -126,7 +126,10 @@ If using multiple extracted frames from each video, this script is used to avera
 ```
 python script/ME/average_features.py --features_dir <path_to_directory_with_features> --output_folder <path_to_output_averaged_features>
 ```
-
+### Convert Visual Feature Vectors to lmdb
+```
+python script/convert_to_lmdb.py  ----features_dir <path_to_directory_with_features> --lmdb_file  <path_to_output_lmdb_file>
+```
 
 
 ### End-to-end Training
