@@ -143,9 +143,9 @@ def main():
     train_df = pd.read_csv(args.gt_path)
     score_dict = {}
     for r in train_df.itertuples():
-        vid_id = re.findall(r'\d+', r.video)[0]
+        vid_id = r.video
         vid_id = int(vid_id)
-        score_dict[vid_id] = [r._2, r._4]
+        score_dict[vid_id] = [r.genre]
 
     train_score_list = []
     for sample in entries:

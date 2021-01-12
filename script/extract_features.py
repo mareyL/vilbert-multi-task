@@ -228,8 +228,8 @@ class FeatureExtractor:
                 files = glob.glob(os.path.join(image_dir, "*"))
             else:
                 files = []
-                for i in range(self.args.samples):
-                    files += glob.glob(os.path.join(image_dir, "*_" + str(i) + ".*"))
+                files += glob.glob(os.path.join(image_dir, "*"))
+                print(len(files))
             # files = sorted(files)
             # files = [files[i: i+1000] for i in range(0, len(files), 1000)][self.args.partition]
             for chunk in self._chunks(files, self.args.batch_size):

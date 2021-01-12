@@ -57,10 +57,12 @@ def main():
                 working = False 
                 while not working:
                    try:
-                      frameIds = (cap.get(cv2.CAP_PROP_FRAME_COUNT) - 1) * np.array([(1.0+i) / (args.frames + 1) for i in range(args.frames)])
+                      frameIds = (cap.get(cv2.CAP_PROP_FRAME_COUNT)) * np.array([(1.0+i) / (args.frames + 1) for i in range(args.frames)])
                       for i, fid in enumerate(frameIds):
-                         cap.set(cv2.CAP_PROP_POS_FRAMES, int(fid))
+                         cap.set(cv2.CAP_PROP_POS_FRAMES, fid)
                          ret, frame = cap.read()
+                         if ret == False:
+                            break
                          file_name = os.path.join(args.output_folder, str(vid_id) + '_' + str(i) + '.jpg')
                          #print('shape:', frame.shape)
                          #print('size:', frame.size)
