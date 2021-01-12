@@ -1,3 +1,5 @@
+
+
 # 12-in-1: Multi-Task Vision and Language Representation Learning
 
 Please cite the following if you use this code. Code and pre-trained models for [12-in-1: Multi-Task Vision and Language Representation Learning](http://openaccess.thecvf.com/content_CVPR_2020/html/Lu_12-in-1_Multi-Task_Vision_and_Language_Representation_Learning_CVPR_2020_paper.html):
@@ -38,7 +40,7 @@ pip install -r requirements.txt
 
 2. Install pytorch
 ```
-conda install pytorch torchvision cudatoolkit=10.0 -c pytorch
+conda install pytorch torchvision cudatoolkit=10.0 -c pytorch #Install cudatoolkit that fits the computer version , same as nvcc --version
 ```
 
 3. Install apex, follows https://github.com/NVIDIA/apex
@@ -126,7 +128,10 @@ If using multiple extracted frames from each video, this script is used to avera
 ```
 python script/ME/average_features.py --features_dir <path_to_directory_with_features> --output_folder <path_to_output_averaged_features>
 ```
-
+### Convert Visual Feature Vectors to lmdb
+```
+python script/convert_to_lmdb.py  ----features_dir <path_to_directory_with_features> --lmdb_file  <path_to_output_lmdb_file>
+```
 
 
 ### End-to-end Training
