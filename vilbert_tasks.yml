@@ -337,8 +337,27 @@ TASK19:
   loss: MSELoss
   process: normal
   task_id: 19
-  dataroot: datasets/ME2020/
-  features_h5path1: datasets/ME/feature_100/ME2020_trainval_resnext152_faster_rcnn_genome.lmdb
+  dataroot: /data/moviescope
+  features_h5path1: /data/moviescope/features.lmdb
+  features_h5path2: ''
+  train_annotations_jsonpath: ''
+  val_annotations_jsonpath: ''
+  max_seq_length: 23
+  max_region_num: 101
+  batch_size: 32
+  eval_batch_size: 1024
+  train_split: trainval
+  val_split: test
+  lr: 0.00004
+  num_epoch: 50
+TASK20:
+  name: Moviescope
+  type: VL-regressor
+  loss: MSELoss
+  process: normal
+  task_id: 20
+  dataroot: /data/moviescope
+  features_h5path1: /data/moviescope/features.lmdb
   features_h5path2: ''
   train_annotations_jsonpath: ''
   val_annotations_jsonpath: ''
