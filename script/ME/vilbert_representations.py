@@ -219,6 +219,7 @@ for i, task_id in enumerate(args.tasks.split("-")):
     task = "TASK" + task_id
     name = task_cfg[task]["name"]
     task_names.append(name)
+print(task_names)
 
 # timeStamp = '-'.join(task_names) + '_' + args.config_file.split('/')[1].split('.')[0]
 timeStamp = args.from_pretrained.split("/")[-1] + "-" + args.save_name

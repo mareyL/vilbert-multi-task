@@ -10,7 +10,6 @@ Cython==0.29.21
 dataclasses==0.7
 decorator==4.4.2
 easydict==1.9
-external==2.0
 filelock==3.0.12
 future==0.18.2
 gast==0.2.2
@@ -30,9 +29,6 @@ kiwisolver==1.2.0
 lmdb==0.94
 Markdown==3.2.2
 matplotlib==3.3.2
-mkl-fft==1.2.0
-mkl-random==1.1.1
-mkl-service==2.3.0
 msgpack==1.0.0
 msgpack-numpy==0.4.7.1
 networkx==2.5
@@ -46,7 +42,7 @@ protobuf==3.13.0
 pyparsing==2.4.7
 python-dateutil==2.8.1
 python-prctl==1.7
-pytorch-transformers==1.2.0
+pytorch-transformers
 pytz==2020.1
 PyWavelets==1.1.1
 PyYAML==5.1.2
@@ -72,7 +68,7 @@ threadpoolctl==2.1.0
 tifffile==2020.9.3
 tokenizers==0.8.1rc2
 torch==1.6.0
-torchvision==0.5.0
+torchvision
 tqdm==4.31.1
 transformers==3.3.1
 urllib3==1.25.10

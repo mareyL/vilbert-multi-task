@@ -907,6 +907,9 @@ def EvaluatingModel(
         loss = task_losses[task_id](vil_tri_prediction, target)
         loss = loss.mean()
         batch_score = compute_score_with_logits(vil_tri_prediction, target).sum()
+    else:
+        loss = 0
+        batch_score = 0
     
     if task_id == "TASK19":
         return float(loss), float(batch_score), batch_size, results, others, target, vil_score_prediction

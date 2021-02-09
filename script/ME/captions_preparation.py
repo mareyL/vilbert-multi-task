@@ -54,7 +54,7 @@ def tensorize(entries, split='trainval'):
         entry["c_segment_ids"] = c_segment_ids
 
         if "scores" in entry:
-            scores = np.array(entry["scores"], dtype=np.float32)
+            scores = np.array(entry["scores"])
             scores = torch.from_numpy(scores)
             entry["scores"] = scores
 
@@ -112,7 +112,7 @@ def main():
     
     #deep_coptions_path = "/MediaEval/alto_titles_danny.csv"
     #train_caption_path = '/aloui/MediaEval/dev-set/dev-set_video-captions.txt'
-    dataroot = 'datasets/ME'
+    dataroot = '/data/moviescope'
     max_length = 23
     tokenizer = BertTokenizer.from_pretrained(args.bert_model, do_lower_case=args.do_lower_case)
     
@@ -140,7 +140,7 @@ def main():
                 sample['caption'] = caption
                 entries.append(sample)
 
-    train_df = pd.read_csv(args.gt_path)
+    train_df = pd.read_csv(args.gt_path,sep=';')
     score_dict = {}
     for r in train_df.itertuples():
         vid_id = r.video
