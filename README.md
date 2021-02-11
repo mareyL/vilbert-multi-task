@@ -165,6 +165,24 @@ python script/ME/eval_ME.py --bert_model bert-base-uncased --config_file config/
 ## No evaluation
 To avoid the script to evaluate every time, any name can be specified in the type of task in the yaml file. It will then return loss = 0 and score = 0, but the features will be extracted.
 
+## Moviescope
+To download the moviescope dataset, use the ressources available in data/moviescope, to download the videos from the csv file:
+
+```
+sh data/moviescope/donload.sh
+```
+
+To extract the plots from the pickles:
+```
+python data/moviescope/makeCSV.py
+```
+
+## Classifier
+To run a classifier for 13 classes on the frozen data, use 
+```
+python script/trin_classifier
+```
+
 ## License
 
 vilbert-multi-task is licensed under MIT license available in [LICENSE](LICENSE) file.
