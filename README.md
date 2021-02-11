@@ -57,54 +57,25 @@ cd vilbert-multi-task/tools/refer
 python setup.py install
 make
 #Then replace refer.py byt https://gist.github.com/vedanuj/9d3497d107cfca0b6f3dfdc28d5cb226 to update from Python2 version to Python3
-```
+``` 
 
+# Moviescope dataset classification
 
-## Data Setup
-
-Check `README.md` under `data` for more details.  
-
-## Visiolinguistic Pre-training and Multi Task Training
-
-### Pretraining on Conceptual Captions
+## Dataset
+### Download data
+To download the moviescope dataset, use the ressources available in data/moviescope, to download the videos from the csv file put in the same folder:
 
 ```
-python train_concap.py --bert_model bert-base-uncased --config_file config/bert_base_6layer_6conect.json --train_batch_size 512 --objective 1 --file_path <path_to_extracted_cc_features>
+sh data/moviescope/download.sh
 ```
-[Download link](https://dl.fbaipublicfiles.com/vilbert-multi-task/pretrained_model.bin)
+This will extract all the videos in webm format (for the frame extraction) in a trailer folder.
 
-### Multi-task Training
-
+To extract the plots from the pickles:
 ```
-python train_tasks.py --bert_model bert-base-uncased --from_pretrained <pretrained_model_path> --config_file config/bert_base_6layer_6conect.json --tasks 1-2-4-7-8-9-10-11-12-13-15-17 --lr_scheduler 'warmup_linear' --train_iter_gap 4 --task_specific_tokens --save_name multi_task_model
+python data/moviescope/makeCSV.py rawdata_train.p <path_to_made_csv> <path_to_made_ground_truth_csv>
 ```
+This truncate the text at the 511th characters, could be changed.
 
-[Download link](https://dl.fbaipublicfiles.com/vilbert-multi-task/multi_task_model.bin)
-
-
-### Fine-tune from Multi-task trained model
-
-```
-python train_tasks.py --bert_model bert-base-uncased --from_pretrained <multi_task_model_path> --config_file config/bert_base_6layer_6conect.json --tasks 1 --lr_scheduler 'warmup_linear' --train_iter_gap 4 --task_specific_tokens --save_name finetune_from_multi_task_model
-```
- 
-## MediaEval Task
-
-### Transfer Learning
-In this part, the fine-tuned (VQA or NLVR2) model wights are being frozen. The ME training dataset (8,000 samples) is fed to the model and the visual and textual representations are written to `--rep_save_path` so they can be used later to train a regressor. For this you need to have prepared the captions (see below, captions_preparation.py) and extracted visual features as explained below. The path to captions is not passed as an argument here but is created in /datasets/me_dataset.py ( combination of dataroot in yaml file and hard coded things). If file does not exist, another task is called, so be careful with this. Todo = Change the code here adding more complete error messages
-
-```
-python script/ME/vilbert_representations.py --bert_model bert-base-uncased --from_pretrained save/VQA_bert_base_6layer_6conect-finetune_from_multi_task_model-task_1/pytorch_model_19.bin --config_file config/bert_base_6layer_6conect.json --tasks 19 --split trainval --batch_size 128 --task_specific_tokens --rep_save_path datasets/ME/out_features/train_features.pkl
-```
-
-### Training the Regressor Separately
-This part was fully made in both `ME_train_reg_test-set.ipynb` and `ME_train_reg_folds.ipynb` notebooks. The only difference is the evaluation process. i.e., for the first training was performed on the whole dev-set and the evaluation on test-set. While for the second, 4 splits were used as explaned in the report.
-
-### Prepare (Deep) Caption
-Preparing (deep) captions consists of loading video IDs and captions from the `.txt` or `.csv` file, add the ground truth (scores), tokenize, tensorize and save the cache file. Add `--dc` parameters if using deep captions. An example of using this script
-```
-python script/ME/captions_preparation.py --captions_path /MediaEval/alto_titles_danny.csv --gt_path /MediaEval/dev-set/ground-truth/ground-truth_dev-set.csv --split trainval --dc
-```
 
 ### Extract Frames from Video
 Use this script to extract frames from the video.
@@ -130,58 +101,35 @@ python script/ME/average_features.py --features_dir <path_to_directory_with_feat
 ```
 ### Convert Visual Feature Vectors to lmdb
 ```
-python script/convert_to_lmdb.py  ----features_dir <path_to_directory_with_features> --lmdb_file  <path_to_output_lmdb_file>
+python script/convert_to_lmdb.py  --features_dir <path_to_directory_with_features> --lmdb_file  <path_to_output_lmdb_file>
 ```
 
+## Visiolinguistic Pre-training and Multi Task Training
 
-### End-to-end Training
-Training the Multi-task model for ME
-```
-python train_tasks.py --bert_model bert-base-uncased --from_pretrained models/multi_task_model.bin --config_file config/bert_base_6layer_6conect.json --tasks 19 --train_iter_gap 4 --task_specific_tokens --save_name finetune_from_multi_task_model-task_19-all_train-BASE --lr_scheduler 'warmup_linear'
-```
-Training the VQA fine-tuned model for ME
-```
-python train_tasks.py --bert_model bert-base-uncased --from_pretrained save/VQA_bert_base_6layer_6conect-finetune_from_multi_task_model-task_1/pytorch_model_19.bin --config_file config/bert_base_6layer_6conect.json --tasks 19 --train_iter_gap 4 --task_specific_tokens --save_name finetune_from_multi_task_model-task_19-all_train-VQA --lr_scheduler 'warmup_linear'
-```
-Training the NLVR2 fine-tuned model for ME
-```
-python train_tasks.py --bert_model bert-base-uncased --from_pretrained save/NLVR2_bert_base_6layer_6conect-finetune_from_multi_task_model-task_12/pytorch_model_19.bin --config_file config/bert_base_6layer_6conect.json --tasks 19 --train_iter_gap 4 --task_specific_tokens --save_name finetune_from_multi_task_model-task_19-all_train-NLVR2 --lr_scheduler 'warmup_linear'
-```
+### Pretraining on Conceptual Captions
 
-### End-to-end Evaluating
-Evaluate the Multi-task model previously trained for ME
 ```
-python script/ME/eval_ME.py --bert_model bert-base-uncased --config_file config/bert_base_6layer_6conect.json --tasks 19 --split test --task_specific_tokens --batch_size 128 --from_pretrained save/ME_bert_base_6layer_6conect-finetune_from_multi_task_model-task_19-all_train-BASE/pytorch_model_12.bin
+python train_concap.py --bert_model bert-base-uncased --config_file config/bert_base_6layer_6conect.json --train_batch_size 512 --objective 1 --file_path <path_to_extracted_cc_features>
 ```
-Evaluate the VQA fine-tuned model previously trained for ME
-```
-python script/ME/eval_ME.py --bert_model bert-base-uncased --config_file config/bert_base_6layer_6conect.json --tasks 19 --split test --task_specific_tokens --batch_size 128 --from_pretrained save/ME_bert_base_6layer_6conect-finetune_from_multi_task_model-task_19-all_train-VQA/pytorch_model_14.bin
-```
-Evaluate the NLVR2 fine-tuned model previously trained for ME
-```
-python script/ME/eval_ME.py --bert_model bert-base-uncased --config_file config/bert_base_6layer_6conect.json --tasks 19 --split test --task_specific_tokens --batch_size 128 --from_pretrained save/ME_bert_base_6layer_6conect-finetune_from_multi_task_model-task_19-all_train-NLVR2/pytorch_model_11.bin
-```
+[Download link](https://dl.fbaipublicfiles.com/vilbert-multi-task/pretrained_model.bin)
+ 
+## Moviescope Task
 
-## No evaluation
+### Transfer Learning
+In this part, the fine-tuned model weights are being frozen. The Moviescope training dataset is fed to the model and the visual and textual representations are written to `--rep_save_path` so they can be used later to train a regressor. For this you need to have prepared the captions (see below, captions_preparation.py) and extracted visual features as explained below. The path to captions is not passed as an argument here but is created in /datasets/me_dataset.py ( combination of dataroot in yaml file and hard coded things). If file does not exist, another task is called, so be careful with this. Todo = Change the code here adding more complete error messages
+
+```
+python script/ME/vilbert_representations.py --bert_model bert-base-uncased --from_pretrained <path_to_the_pretrained_model> --config_file config/bert_base_6layer_6conect.json --tasks 19 --split trainval --batch_size 128 --task_specific_tokens --rep_save_path datasets/ME/out_feaures/train_features.pkl
+```
 To avoid the script to evaluate every time, any name can be specified in the type of task in the yaml file. It will then return loss = 0 and score = 0, but the features will be extracted.
 
-## Moviescope
-To download the moviescope dataset, use the ressources available in data/moviescope, to download the videos from the csv file:
+### Training and evaluation
+The training and evaluation of the classifier on the frozen data are made by:
+```
+python script/train_classifier
+```
+This uses a 4 layers (size 512, 64, 32, 13) neural network with multi label margin loss which outputs the probability of being of any genre, a threshold is then set to 0.5 to tell wether the film is or not of 1 genre. The loss curve is saved in "/data/moviescope/outputs/train_loss.png" (hardcoded) and returns the mean Average Precision (mAP). The mAP is computed by comparing every genre of every output with the ground truth.
 
-```
-sh data/moviescope/donload.sh
-```
-
-To extract the plots from the pickles:
-```
-python data/moviescope/makeCSV.py
-```
-
-## Classifier
-To run a classifier for 13 classes on the frozen data, use 
-```
-python script/trin_classifier
-```
 
 ## License
 
