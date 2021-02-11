@@ -10,7 +10,7 @@ from scipy.stats import spearmanr
 import pandas as pd
 
 def evaluate(model, inp, target):
-    loss_func = torch.nn.MSELoss()
+    loss_func = torch.nn.MultiLabelMarginLoss()
     torch_dataset_val = Data.TensorDataset(inp, target)
 
     loader_val = Data.DataLoader(
@@ -54,12 +54,11 @@ for el in targets_:
     genre = []
     genre_str = str(el["scores"].cpu().detach().numpy()[0])
     for c in genre_str:
-        genre.append(float(c))
+        genre.append(int(c))
     while len(genre)<13:
-        genre.insert(0,0.)
+        genre.insert(0,0)
     targets.append(genre)
 targets = torch.tensor(targets,device='cuda:0')
-print(targets)
 
 test_save_path = "/data/moviescope/outputs/test_features.pkl"
 pooled_dict_test = cPickle.load(open(test_save_path, 'rb'))
@@ -74,12 +73,11 @@ for el in targets_test_:
     genre = []
     genre_str = str(el["scores"].cpu().detach().numpy()[0])
     for c in genre_str:
-        genre.append(float(c))
+        genre.append(int(c))
     while len(genre)<13:
-        genre.insert(0,0.)
+        genre.insert(0,0)
     targets_test.append(genre)
 targets_test = torch.tensor(targets_test,device='cuda:0')
-print(targets_test)
 
 class SigLinNet(nn.Module):
     def __init__(self, input_size,
@@ -96,7 +94,8 @@ class SigLinNet(nn.Module):
                 nn.Linear(hidden_size_2, hidden_size_3),
                 nn.Sigmoid(),
                 nn.Linear(hidden_size_3, num_scores),
-            )
+                nn.Sigmoid(),
+            )   
 
     def forward(self, x):
         return self.out(x)
@@ -111,7 +110,6 @@ torch.manual_seed(42)
 
 torch_dataset = Data.TensorDataset(concat_pooled_output, targets)
 
-print(concat_pooled_output)
 
 loader = Data.DataLoader(
             dataset=torch_dataset,
@@ -123,7 +121,7 @@ net = SigLinNet(1024*2, 512, 64, 32, 13)
 net.cuda()
 
 optimizer = torch.optim.Adam(net.parameters(), lr=lr, weight_decay=1e-4)
-loss_func = torch.nn.MSELoss()
+loss_func = torch.nn.MultiLabelMarginLoss()
 
 summary = {
     "losses" : [],
@@ -141,7 +139,7 @@ for _ in tqdm(range(EPOCH)):
 
         b_in = Variable(batch_in)
         b_out = Variable(batch_out)
-
+        
         prediction = net(b_in)
 
         loss = loss_func(prediction, b_out)
@@ -178,10 +176,18 @@ pred_scores = net(in_)
 loss = loss_func(pred_scores, out_)
 losses.append(loss.item())
 
-r, _ = spearmanr(
-    pred_scores.cpu().detach().numpy()[:,0], 
-    out_.cpu().detach().numpy()[:,0], 
-    axis=0
-)
+mAP=0
+out_list = out_.cpu().detach().numpy()
+scores_list = pred_scores.cpu().detach().numpy()
 
-print(r)
+for i in range(scores_list.shape[0]):
+    for j in range(len(scores_list[i])):
+        if scores_list[i][j] > 0.5:
+            prediction = 1
+        else:
+            prediction = 0
+        if prediction==out_list[i][j]:
+            mAP += 1
+mAP = mAP/(out_list.shape[0]*out_list.shape[1])
+
+print("mAP=",mAP)

@@ -352,7 +352,7 @@ TASK19:
   num_epoch: 50
 TASK20:
   name: Moviescope
-  type: VL-regressor
+  type: skip
   loss: MSELoss
   process: normal
   task_id: 20
