@@ -162,6 +162,9 @@ Evaluate the NLVR2 fine-tuned model previously trained for ME
 python script/ME/eval_ME.py --bert_model bert-base-uncased --config_file config/bert_base_6layer_6conect.json --tasks 19 --split test --task_specific_tokens --batch_size 128 --from_pretrained save/ME_bert_base_6layer_6conect-finetune_from_multi_task_model-task_19-all_train-NLVR2/pytorch_model_11.bin
 ```
 
+## No evaluation
+To avoid the script to evaluate every time, any name can be specified in the type of task in the yaml file. It will then return loss = 0 and score = 0, but the features will be extracted.
+
 ## License
 
 vilbert-multi-task is licensed under MIT license available in [LICENSE](LICENSE) file.
